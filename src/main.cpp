@@ -10,7 +10,8 @@
 #include <AsyncElegantOTA.h>
 //partie de declaration des variables
 #define SEALEVELPRESSURE_HPA (1013.25)
-
+#define I2C_SDA 21 
+#define I2C_SCL 22
 // Declaration object 
 Adafruit_BME280 bme; // I2C
 
@@ -205,8 +206,6 @@ img{
 </html>)rawliteral"; 
 void setup() {
   Serial.begin(9600);
-  //partie bme
-  bme.begin();
   Serial.println(F("BME280 test"));
 
   //configuration de wifi
@@ -244,6 +243,12 @@ void setup() {
 
 }
 void loop() {
+   //verification si on detecte un bme280
+  bool status = bme.begin(0x76);  
+  if (!status) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+  
+  }
   // Read BME280 sensor data
   temperature = bme.readTemperature();
   pressure = bme.readPressure() / 100.0F;
