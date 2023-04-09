@@ -20,6 +20,7 @@ Adafruit_BME280 bme; // I2C
 //const char* password = "42Bidules!";
 const char* ssid = "Ste-adele";
 const char* password = "allo1234";
+float temperature, pressure,humidity, altitude ; 
 
 
 
@@ -120,34 +121,8 @@ const char fichierhtml[] PROGMEM = R"rawliteral(
         </div>          
       </div>
     </div>
-    <div class="row pb-4 ">
-      <div class="rowdata">
-        <div class="row pb-2 justify-content-md-center ">
-          <div class=" col-md-4">
 
-            <h5 class="valLumiere"><b>LUMIERE</b></h5>
 
-          </div>
-        </div>
-        <div class="col-sm">
-          <h2 class="valLumiere" id="valLumiere">22.85</h2>
-        </div>          
-      </div>
-    </div>
-    <div class="row pb-4 ">
-      <div class="rowdata">
-        <div class="row pb-2 justify-content-md-center ">
-          <div class=" col-md-4">
-
-            <h5 class="valPluie"><b>Pluie</b></h5>
-
-          </div>
-        </div>
-        <div class="col-sm">
-          <h2 class="valPluie" id="valPluie">y'a pas de pluie</h2>
-        </div>          
-      </div>
-    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -231,6 +206,7 @@ img{
 void setup() {
   Serial.begin(9600);
   //partie bme
+  bme.begin();
   Serial.println(F("BME280 test"));
 
   //configuration de wifi
@@ -252,7 +228,7 @@ void setup() {
       request->send(200, "text/html", fichierhtml);  // chargement page html
     });
   server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
-    const char* json = "{\"temperature\":\"temperature\",\"presssion\":\"pressure\",\"altitude\":\"altitude\",\"humidite\":\"humidity\"}";
+      String json = "{\"temperature\":" + String(temperature) + ",\"pressure\":" + String(pressure) + ",\"altitude\":" + String(altitude) + ",\"humidity\":" + String(humidity) + "}";
 
     request->send(200, "application/json", json);
   });
@@ -269,10 +245,14 @@ void setup() {
 }
 void loop() {
   // Read BME280 sensor data
-  float temperature = bme.readTemperature();
-  float pressure = bme.readPressure() / 100.0F;
-  float altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
-  float humidity = bme.readHumidity();
+  temperature = bme.readTemperature();
+  pressure = bme.readPressure() / 100.0F;
+  altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
+  humidity = bme.readHumidity();
+  Serial.println(temperature);
+  Serial.println(pressure);
+  Serial.println(altitude);
+  Serial.println(humidity);
   delay(3000);
 
 }
