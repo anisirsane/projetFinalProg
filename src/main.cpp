@@ -30,14 +30,13 @@ AsyncWebServer server(80);
 
 // Declation de la constante qui contient la page HTML 
 
-const char index_html[] PROGMEM = R"rawliteral(
+const char fichierhtml[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         
     <meta http-equiv="X-UA-Compatible" content="IE=edge">  <!-- required to handle IE -->        
     <meta name="viewport" content="width=device-width, initial-scale=1">   
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="main.css">  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">  
   </head>
   <body>
     <!--c'est pour la premiere partie de la page web-->
@@ -243,10 +242,17 @@ void setup() {
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 
-
+//sources : https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library
+//https://raphaelpralat.medium.com/example-of-json-rest-api-for-esp32-4a5f64774a05#:~:text=Once%20connected%2C%20display%20the%20ESP32%20IP%20address%2C%20it,%28AsyncWebServerRequest%20%2Arequest%29%20%7B%20request-%3Esend%20%28200%2C%20%22application%2Fjson%22%2C%20%22%20%7B%22message%22%3A%22Welcome%22%7D%22%29%3B
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-      request->send(200, "text/html", index_html);  // chargement page html
+      request->send(200, "text/html", fichierhtml);  // chargement page html
     });
+  server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request){
+    const char* json = "{\"temperature\":\"temperature\",\"presssion\":\"pressure\",\"altitude\":\"altitude\",\"humidite\":\"humidity\"}";
+
+    request->send(200, "application/json", json);
+  });
+
 
     AsyncElegantOTA.begin(&server);    // Start serveur ElegantOTA
     server.begin();
