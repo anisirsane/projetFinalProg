@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -15,23 +14,222 @@
 // Declaration object 
 Adafruit_BME280 bme; // I2C
 
-//pour la partie du code de SPIFFS pour qu'on gere la memoire flash, et pour qu'on ajoute des fichiers du html, css et js
-//source: https://randomnerdtutorials.com/esp32-ota-over-the-air-vs-code/
+
 
 //const char* ssid = "UNIFI_IDO1";
 //const char* password = "42Bidules!";
 const char* ssid = "Ste-adele";
 const char* password = "allo1234";
-const char* DATAFILE = "/Data.json";
+
 
 
 AsyncWebServer server(80);
 
+
+
+
+// Declation de la constante qui contient la page HTML 
+
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">  <!-- required to handle IE -->        
+    <meta name="viewport" content="width=device-width, initial-scale=1">   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="main.css">  
+  </head>
+  <body>
+    <!--c'est pour la premiere partie de la page web-->
+  <div class="firstimage text-center row">
+      <div class="row firstrow pb-4 mb-2 ml-0 mr-0">
+        <h3>BME280 WEB SERVER</h3>
+      </div>
+      <div class="row pb-4 ">
+        <div class="rowdata">
+          <div class="row pb-2 justify-content-md-center ">
+            <div class="col-md-2">
+              <img src="temp.svg">
+            </div>
+            <div class="col-md-4" >
+
+              <h5 class="tempval"><b>TEMPERATURE</b></h5>
+
+            </div>
+          </div>
+          <div class="col-sm">
+            <h2 class="tempval" id="tempval">28.51</h2>
+          </div>          
+        </div>
+
+    </div>
+
+
+      <div class="row pb-4 ">
+        <div class="rowdata">
+          <div class="row pb-2 justify-content-md-center " >
+            <div class=" col-md-2" >
+              <img src="humidity.svg">
+            </div>
+            <div class=" col-md-4" >
+
+              <h5 class="humidityval"><b>HUMIDITY</b></h5>
+
+            </div>
+          </div>
+          <div class="col-sm">
+            <h2 class="humidityval" id="humidityval">59.44</h2>
+          </div>          
+        </div>
+
+    </div>
+
+    <div class="row pb-4 ">
+      <div class="rowdata">
+        <div class="row pb-2 justify-content-md-center " >
+          <div class="col-md-2">
+            <img src="arrows.svg">
+          </div>
+          <div class="col-md-4">
+
+            <h5 class="preval"><b>PRESSURE</b></h5>
+
+          </div>
+        </div>
+        <div class="col-sm">
+          <h2 class="preval" id="preval">1003.62</h2>
+        </div>          
+      </div>
+    </div>
+
+
+
+    <div class="row pb-4 ">
+      <div class="rowdata">
+        <div class="row pb-2 justify-content-md-center ">
+          <div class=" col-md-2">
+            <img class="wind" src="winds.svg">
+          </div>
+          <div class=" col-md-4">
+
+            <h5 class="altval"><b>ALTITUDE</b></h5>
+
+          </div>
+        </div>
+        <div class="col-sm">
+          <h2 class="altval" id="altval">22.85</h2>
+        </div>          
+      </div>
+    </div>
+    <div class="row pb-4 ">
+      <div class="rowdata">
+        <div class="row pb-2 justify-content-md-center ">
+          <div class=" col-md-4">
+
+            <h5 class="valLumiere"><b>LUMIERE</b></h5>
+
+          </div>
+        </div>
+        <div class="col-sm">
+          <h2 class="valLumiere" id="valLumiere">22.85</h2>
+        </div>          
+      </div>
+    </div>
+    <div class="row pb-4 ">
+      <div class="rowdata">
+        <div class="row pb-2 justify-content-md-center ">
+          <div class=" col-md-4">
+
+            <h5 class="valPluie"><b>Pluie</b></h5>
+
+          </div>
+        </div>
+        <div class="col-sm">
+          <h2 class="valPluie" id="valPluie">y'a pas de pluie</h2>
+        </div>          
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+  <script >
+    // function to fetch data from ESP32 and update the form
+    function updateData() {
+      $.ajax({
+        url: 'Data.json',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {    
+        }
+      });
+    };
+    
+    // update the form every 3 seconds
+    setInterval(updateform, 3000);
+    
+    </script>
+    <style>
+      .firstimage{
+	width: 400px;
+	border:1px solid grey;
+	border-radius: 20px;
+	position:absolute;
+	top:20%;
+	left:35vw;
+}
+@media (max-width:575.98px){
+	.firstimage{
+		top:10%;
+		left:10vw;
+	}
+}
+.firstrow{
+	background:#481e40;
+	color:white;
+	border-radius: 20px 20px 0 0;
+	margin:auto 0 auto 0;
+}
+img{
+	width:10px;
+	height: auto;
+}
+.tempval{
+	color:#28716a;
+}
+.humidityval{
+	color:#57b9b2;
+}
+.preval{
+	color:#49c555;
+}
+.altval{
+	color:#c51841;
+}
+.rowdata{
+	max-width: 80%;
+	position:relative;
+	top:1em;
+	left:2.5em;
+
+    box-shadow:0px 0px 5px 5px #dddddd;
+}
+.wind{
+	width:30px;
+	height:auto;
+}
+    </style>
+
+
+  
+</body>
+</html>)rawliteral"; 
 void setup() {
   Serial.begin(9600);
   //partie bme
   Serial.println(F("BME280 test"));
-  //cette prtie pour le OTA est copie depuis https://randomnerdtutorials.com/esp32-web-server-gauges/
+
   //configuration de wifi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {   // Wait for connection
@@ -42,29 +240,20 @@ void setup() {
 
 
 
-  
-// Initialize SPIFFS
-  if(!SPIFFS.begin(true)) {
-    //si ya une erreur ca affiche ce message
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    return;
-  }
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+      request->send(200, "text/html", index_html);  // chargement page html
+    });
+
+    AsyncElegantOTA.begin(&server);    // Start serveur ElegantOTA
+    server.begin();
+    Serial.println("HTTP server started");
 
 
 
-
-  if(!SPIFFS.exists(DATAFILE)) {
-    //si le fichier n'existe pas, ca va creer le fichier json, l'ouvrir avec le parametre write, faire la serialization et le fermer
-    DynamicJsonDocument doc(1024);
-    File file = SPIFFS.open(DATAFILE, FILE_WRITE);
-    serializeJson(doc, file);
-    file.close();
-    // la serialization est de prendre l'objet doc et le serialize sous format json et l'ecrit sur le fichier file.
-  }
-  //lance la page html dans le serveur apres qu'il la recupere depuis la memoire avec le spiffs
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("main.html");
-//AsyncElegantOTA.begin(&server);    // Start serveur ElegantOTA
-server.begin();
 
 
 }
@@ -74,38 +263,6 @@ void loop() {
   float pressure = bme.readPressure() / 100.0F;
   float altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   float humidity = bme.readHumidity();
+  delay(3000);
 
-  // Open JSON data file for reading and writing
-  File dataFile = SPIFFS.open(DATAFILE, "r+");
-  if (!dataFile) {
-    Serial.println("Error opening data file");
-    return;
-  }
-
-  // Deserialize JSON data from file
- DynamicJsonDocument doc(9000);
-   deserializeJson(doc, dataFile);
-   /*if (deserializeJson(doc, dataFile) != DeserializationError::Ok) {
-    Serial.println("Error deserializing JSON data");
-    dataFile.close();
-    return;
-  }*/
- 
-
-  // Update JSON object with sensor data
-  doc["temperature"] = temperature;
-  doc["humidity"] = humidity;
-  doc["pressure"] = pressure;
-  doc["altitude"] = altitude;
- dataFile.seek(0);
-  // Serialize JSON object to file
-  /*if (serializeJson(doc, dataFile) == 0) {
-    Serial.println("Error serializing JSON data");
-    dataFile.close();
-    return;
-  }*/
-    serializeJson(doc, dataFile);
-  dataFile.close();
-
-  delay(5000);
 }
