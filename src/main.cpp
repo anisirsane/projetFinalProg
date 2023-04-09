@@ -157,10 +157,14 @@ const char fichierhtml[] PROGMEM = R"rawliteral(
     // function to fetch data from ESP32 and update the form
     function updateData() {
       $.ajax({
-        url: 'Data.json',
+        url: '/data',
         type: 'GET',
         dataType: 'json',
-        success: function(data) {    
+        success: function(data) {  
+          $('#tempval').text(data.temperature+" °C");
+          $('#humidityval').text(data.humidity+" %");
+          $('#preval').text(data.pressure + " hpa");
+          $('#altval').text(data.altitude + " m");  
         }
       });
     };
