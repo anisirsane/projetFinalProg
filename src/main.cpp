@@ -136,7 +136,7 @@ const char fichierhtml[] PROGMEM = R"rawliteral(
         url: '/data',
         type: 'GET',
         dataType: 'json',
-        success: function(data) {  
+        success: function(data) { 
           $('#tempval').text(data.temperature+" °C");
           $('#humidityval').text(data.humidity+" %");
           $('#preval').text(data.pressure + " hpa");
@@ -146,7 +146,7 @@ const char fichierhtml[] PROGMEM = R"rawliteral(
     };
     
     // update the form every 3 seconds
-    setInterval(updateform, 3000);
+    setInterval(updateData, 3000);
     
     </script>
     <style>
